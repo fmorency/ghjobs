@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: Build (${{ matrix.os }})
+    name: build-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -40,13 +40,13 @@ jobs:
         run: cargo build --release
 
   test:
-    name: Tests (${{ matrix.os }})
+    name: tests-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
         os: [ ubuntu-latest, macos-latest ]
-    needs: build
+    needs: build-${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - name: Generate random cache key to ensure the cache directories are saved after build
