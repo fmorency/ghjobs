@@ -27,7 +27,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ github.sha }}
-          restore_keys: |
+          restore-keys: |
             ${{ runner.os }}-cargo-
 
       - name: Build
@@ -50,7 +50,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ github.sha }}
-          restore_keys: |
+          restore-keys: |
             ${{ runner.os }}-cargo-
 
       - name: Test
