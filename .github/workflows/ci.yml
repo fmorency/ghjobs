@@ -20,7 +20,7 @@ jobs:
 
       - name: Generate random cache key to ensure the cache directories are saved after build
         id: random-cache-key
-        run: echo "::set-output name=key::$(( head /dev/random -c 32 ))"
+        run: echo "::set-output name=key::$(head /dev/random -c 32)"
 
       - uses: actions/cache@v3
         with:
