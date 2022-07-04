@@ -22,7 +22,7 @@ jobs:
 
       - name: Generate random cache key to ensure the cache directories are saved after build
         id: random-cache-key
-        run: echo "::set-output name=key::$(head /dev/random -c 32 | shasum | cut -d ' ' -f 1)"
+        run: echo "::set-output name=key::$(xxd -u -l 16 -p /dev/urandom)"
 
       - uses: actions/cache@v3
         with:
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Generate random cache key to ensure the cache directories are saved after build
         id: random-cache-key
-        run: echo "::set-output name=key::$(head /dev/random -c 32 | shasum | cut -d ' ' -f 1)"
+        run: echo "::set-output name=key::$(xxd -u -l 16 -p /dev/urandom)"
       - uses: actions/cache@v3
         with:
           path: |
