@@ -46,7 +46,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ ubuntu-latest, macos-latest ]
-    needs: build-${{ matrix.os }}
+    if: ${{ needs.build-${{ matrix.os }}.result }} == "success"
     steps:
       - uses: actions/checkout@v2
       - name: Generate random cache key to ensure the cache directories are saved after build
