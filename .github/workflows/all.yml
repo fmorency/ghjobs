@@ -4,14 +4,7 @@ on:
   - pull_request
 
 jobs:
-  ubuntu:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ ubuntu-latest, macos-latest ]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/workflows/ci.yml
-        with:
-          os: ${{ matrix.os }}
+  build-test:
+    uses: ./.github/workflows/ci.yml
+    with:
+      os: ubuntu-latest
