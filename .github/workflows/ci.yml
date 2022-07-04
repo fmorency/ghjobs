@@ -5,9 +5,10 @@ on:
       os:
         required: true
         type: string
+
 jobs:
   build:
-    name: build-${{ inputs.os }}
+    name: build
     runs-on: ${{ inputs.os }}
     steps:
       - uses: actions/checkout@v2
@@ -38,9 +39,9 @@ jobs:
         run: cargo build --release
 
   test:
-    name: tests-${{ inputs.os }}
+    name: tests
     runs-on: ${{ inputs.os }}
-    needs: build-${{ inputs.os }}
+    needs: build
     steps:
       - uses: actions/checkout@v2
       - name: Generate random cache key to ensure the cache directories are saved after build
