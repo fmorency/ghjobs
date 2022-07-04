@@ -20,7 +20,7 @@ jobs:
 
       - name: Generate random cache key to ensure the cache directories are saved after build
         id: random-cache-key
-        run: head /dev/random -c 32 > random-cache-key
+        run: echo "::set-output name=key::$(( head /dev/random -c 32 ))"
 
       - uses: actions/cache@v3
         with:
@@ -30,7 +30,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ random-cache-key }}
+          key: ${{ runner.os }}-cargo-${{ steps.random-cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Generate random cache key to ensure the cache directories are saved after build
         id: random-cache-key
-        run: head /dev/random -c 32 > random-cache-key
+        run: echo "::set-output name=key::$(( head /dev/random -c 32 ))"
       - uses: actions/cache@v3
         with:
           path: |
@@ -56,7 +56,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ random-cache-key }}
+          key: ${{ runner.os }}-cargo-${{ steps.random-cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
