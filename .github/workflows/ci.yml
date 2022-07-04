@@ -1,16 +1,14 @@
 name: ci
 on:
-  - pull_request
-  - push
-
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
 jobs:
   build:
-    name: build-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ ubuntu-latest, macos-latest ]
+    name: build-${{ inputs.os }}
+    runs-on: ${{ inputs.os }}
     steps:
       - uses: actions/checkout@v2
       - name: Install Rust
@@ -40,13 +38,9 @@ jobs:
         run: cargo build --release
 
   test:
-    name: tests-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ ubuntu-latest, macos-latest ]
-    if: needs.build-${{ matrix.os }}.result == "success"
+    name: tests-${{ inputs.os }}
+    runs-on: ${{ inputs.os }}
+    needs: build-${{ inputs.os }}
     steps:
       - uses: actions/checkout@v2
       - name: Generate random cache key to ensure the cache directories are saved after build

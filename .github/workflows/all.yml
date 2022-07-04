@@ -1,0 +1,16 @@
+name: all
+on:
+  - push
+  - pull_request
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: ./.github/workflows/ci
+        with:
+          os: ${{ matrix.os }}
