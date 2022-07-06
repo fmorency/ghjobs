@@ -2,61 +2,86 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+cache_path: &cache_path
+  paths:
+    - ~/.cargo/bin/
+    - ~/.cargo/registry/index/
+    - ~/.cargo/registry/cache/
+    - ~/.cargo/git/db/
+    - target/
+
+executors:
+  linux:
+    machine:
+      image: ubuntu-2004:2022.04.1
+  macos:
+    macos:
+      xcode: 13.4.1
+
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
   build:
+    parameters:
+      os:
+        type: executor
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    docker:
-      - image: rust:latest
+    executor: << parameters.os >>
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
       - restore_cache:
           keys:
-            - v1-ghjobs-{{ arch }}-{{ checksum "Cargo.lock" }}
-            - v1-ghjobs-{{ arch }}-
+            - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-build-{{ arch }}-
+      - run:
+          name: "install rust"
+          command: "curl https://sh.rustup.rs -sSf | sh -s -- --profile minimal --default-toolchain nightly -y && source $HOME/.cargo/env"
       - run:
           name: "build"
           command: "cargo build"
       - save_cache:
-          key: v1-ghjobs-{{ arch }}-{{ checksum "Cargo.lock" }}
-          paths:
-            - ~/.cargo/bin/
-            - ~/.cargo/registry/index/
-            - ~/.cargo/registry/cache/
-            - ~/.cargo/git/db/
-            - target/
+          key: v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
+          <<: *cache_path
   test:
-    docker:
-      - image: rust:latest
+    parameters:
+      os:
+        type: executor
+    executor: << parameters.os >>
     steps:
       - checkout
       - restore_cache:
           keys:
-          - v1-ghjobs-{{ arch }}-{{ checksum "Cargo.lock" }}
-          - v1-ghjobs-{{ arch }}-
+          - v1-ghjobs-test-{{ arch }}-{{ checksum "Cargo.lock" }}
+          - v1-ghjobs-test-{{ arch }}-
+          - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
+          - v1-ghjobs-build-{{ arch }}-
+      - run:
+          name: "install rust"
+          command: "curl https://sh.rustup.rs -sSf | sh -s -- --profile minimal --default-toolchain nightly -y && source $HOME/.cargo/env"
       - run:
           name: "test"
           command: "cargo test"
       - save_cache:
-          key: v1-ghjobs-{{ arch }}-{{ checksum "Cargo.lock" }}
-          paths:
-            - ~/.cargo/bin/
-            - ~/.cargo/registry/index/
-            - ~/.cargo/registry/cache/
-            - ~/.cargo/git/db/
-            - target/
-
+          key: v1-ghjobs-test-{{ arch }}-{{ checksum "Cargo.lock" }}
+          <<: *cache_path
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   ci:
     jobs:
-      - build
+      - build:
+          name: build-v<< matrix.version >>
+          matrix:
+            parameters:
+              os: [linux, macos]
       - test:
+          name: test-v<< matrix.version >>
+          matrix:
+            parameters:
+              os: [linux, macos]
           requires:
-            - build
+            - build-v<< matrix.version >>
