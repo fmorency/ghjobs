@@ -14,11 +14,9 @@ executors:
   linux:
     machine:
       image: ubuntu-2004:2022.04.1
-    working_directory: /tmp
   macos:
     macos:
       xcode: 13.4.1
-    working_directory: /tmp
 
 jobs:
   lint:
@@ -128,12 +126,12 @@ jobs:
       - rust/build:
           release: true
           with_cache: false
-      - run: mkdir -p /tmp/artifacts
+      - run: mkdir -p artifacts
       - run:
           name: "creating release archive"
-          command: find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf /tmp/artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz --null -T -
+          command: find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ./artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz --null -T -
       - persist_to_workspace:
-          root: /tmp/artifacts
+          root: artifacts
           paths:
             - ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-${OSD_ID}-${OSD_VERSION}.tar.gz
   publish:
@@ -141,12 +139,12 @@ jobs:
       - image: cibuilds/github:0.10
     steps:
       - attach_workspace:
-          at: /tmp/artifacts
+          at: ~/project/artifacts
       - run:
           name: "publish release"
           command: |
             VERSION=${CIRCLE_TAG}
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/artifacts
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts
 
 workflows:
   ci:
