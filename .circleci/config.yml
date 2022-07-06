@@ -126,11 +126,11 @@ jobs:
           with_cache: false
       - run:
           name: "creating release archive"
-          command: "find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-<< parameters.os >>.tar.gz --null -T -"
+          command: "find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-{{ arch }}.tar.gz --null -T -"
       - persist_to_workspace:
           root: /tmp/artifacts
           paths:
-            - target/release/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-<< parameters.os >>.tar.gz
+            - target/release/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-{{ arch }}.tar.gz
   publish:
     docker:
       - image: cibuilds/github:0.10
