@@ -16,13 +16,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-ghjobs-{{ arch }}-{{ checksum Cargo.lock }}
+            - v1-ghjobs-{{ arch }}-{{ checksum "Cargo.lock" }}
             - v1-ghjobs-{{ arch }}-
       - run:
           name: "build"
           command: "cargo build"
       - save_cache:
-          key: v1-ghjobs-{{ arch }}-{{ checksum Cargo.lock }}
+          key: v1-ghjobs-{{ arch }}-{{ checksum "Cargo.lock" }}
           paths:
             - ~/.cargo/bin/
             - ~/.cargo/registry/index/
@@ -36,13 +36,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-ghjobs-{{ arch }}-{{ checksum Cargo.lock }}
+          - v1-ghjobs-{{ arch }}-{{ checksum "Cargo.lock" }}
           - v1-ghjobs-{{ arch }}-
       - run:
           name: "test"
           command: "cargo test"
       - save_cache:
-          key: v1-ghjobs-{{ arch }}-{{ checksum Cargo.lock }}
+          key: v1-ghjobs-{{ arch }}-{{ checksum "Cargo.lock" }}
           paths:
             - ~/.cargo/bin/
             - ~/.cargo/registry/index/
