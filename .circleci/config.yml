@@ -35,7 +35,7 @@ jobs:
           nightly-toolchain: true
           with_cache: false
       - rust/clippy:
-          flags: "-all-targets --all-features -- -D clippy::all"
+          flags: "--all-targets --all-features -- -D clippy::all"
           with_cache: false
 
   build:
