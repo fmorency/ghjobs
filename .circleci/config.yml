@@ -104,6 +104,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
+            - v1-ghjobs-coverage-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-coverage-{{ arch }}-
             - v1-ghjobs-test-{{ arch }}-{{ checksum "Cargo.lock" }}
             - v1-ghjobs-test-{{ arch }}-
             - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
@@ -118,9 +120,12 @@ jobs:
           command: "RUSTFLAGS=\"-C instrument-coverage\" LLVM_PROFILE_FILE=\"coverage/lcov-%p-%m.profraw\" cargo test --lib --all-targets --all-features"
       - run:
           name: "generate coverage report"
-          command: "target/bin/grcov src --binary-path target/debug/ -s . --keep-only 'src/**' --prefix-dir $PWD -t lcov --branch --ignore-not-existing -o coverage/report.lcov"
+          command: "target/bin/grcov coverage --binary-path target/debug/ -s . --keep-only 'src/**' --prefix-dir $PWD -t lcov --branch --ignore-not-existing -o coverage/report.lcov"
       - codecov/upload:
           file: coverage/report.lcov
+      - save_cache:
+          key: v1-ghjobs-coverage-{{ arch }}-{{ checksum "Cargo.lock" }}
+          <<: *rust_cache
 
 
 # Invoke jobs via workflows
