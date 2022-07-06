@@ -13,10 +13,6 @@ rust_cache: &rust_cache
     - ~/.cargo/git/db/
     - target/
 
-build_cache: &build_cache
-    - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
-    - v1-ghjobs-build-{{ arch }}-
-
 
 rust_install_cmd: &rust_install_cmd
   name: "install rust"
@@ -42,7 +38,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            <<: *build_cache
+            - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-build-{{ arch }}-
       - run:
           <<: *rust_install_cmd
       - run:
@@ -65,7 +62,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            <<: *build_cache
+            - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-build-{{ arch }}-
       - run:
           <<: *rust_install_cmd
       - run:
