@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@3.2.3
   rust: circleci/rust@1.6.0
+  detect: circleci/os-detect@0.3.0
 
 rust_cache_path: &rust_cache_path
   paths:
@@ -119,6 +120,7 @@ jobs:
     executor: << parameters.os >>
     steps:
       - checkout
+      - detect/init
       - rust/install:
           version: nightly
       - rust/build:
@@ -126,11 +128,11 @@ jobs:
           with_cache: false
       - run:
           name: "creating release archive"
-          command: "find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-{{ arch }}.tar.gz --null -T -"
+          command: find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz --null -T -
       - persist_to_workspace:
           root: /tmp/artifacts
           paths:
-            - target/release/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-{{ arch }}.tar.gz
+            - target/release/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-${OSD_ID}-${OSD_VERSION}.tar.gz
   publish:
     docker:
       - image: cibuilds/github:0.10
