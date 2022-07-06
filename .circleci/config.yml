@@ -112,7 +112,36 @@ jobs:
       - save_cache:
           key: v1-ghjobs-coverage-{{ arch }}-{{ checksum "Cargo.lock" }}
           <<: *rust_cache_path
-
+  create:
+    parameters:
+      os:
+        type: executor
+    executor: << parameters.os >>
+    steps:
+      - checkout
+      - rust/install:
+          version: nightly
+      - rust/build:
+          release: true
+          with_cache: false
+      - run:
+          name: "creating release archive"
+          command: "find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-<< matrix.os >>.tar.gz --null -T -"
+      - persist_to_workspace:
+          root: /tmp/artifacts
+          paths:
+            - target/release/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-<< matrix.os >>.tar.gz
+  publish:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: /tmp/artifacts
+      - run:
+          name: "publish release"
+          command: |
+            VERSION=${CIRCLE_TAG}
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/artifacts
 
 workflows:
   ci:
@@ -141,3 +170,19 @@ workflows:
               os: [linux]
           requires:
             - test-v<< matrix.os >>
+  release:
+    jobs:
+      - create:
+          name: create-v<< matrix.os >>
+          matrix:
+            parameters:
+              os: [linux, macos]
+      - publish:
+          name: publish
+          requires:
+            - create
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
