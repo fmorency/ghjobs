@@ -34,5 +34,6 @@ fn foo() {
 
 #[test]
 fn unit() {
+    // Foo
     let _ = Unit;
 }
