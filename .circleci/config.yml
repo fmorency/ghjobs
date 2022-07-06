@@ -14,9 +14,11 @@ executors:
   linux:
     machine:
       image: ubuntu-2004:2022.04.1
+    working_directory: /tmp
   macos:
     macos:
       xcode: 13.4.1
+    working_directory: /tmp
 
 jobs:
   lint:
@@ -126,13 +128,14 @@ jobs:
       - rust/build:
           release: true
           with_cache: false
+      - run: mkdir -p /tmp/artifacts
       - run:
           name: "creating release archive"
-          command: find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz --null -T -
+          command: find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf /tmp/artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz --null -T -
       - persist_to_workspace:
           root: /tmp/artifacts
           paths:
-            - target/release/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-${OSD_ID}-${OSD_VERSION}.tar.gz
+            - ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-${OSD_ID}-${OSD_VERSION}.tar.gz
   publish:
     docker:
       - image: cibuilds/github:0.10
