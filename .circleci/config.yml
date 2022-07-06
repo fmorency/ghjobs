@@ -74,14 +74,14 @@ workflows:
   ci:
     jobs:
       - build:
-          name: build-v<< matrix.version >>
+          name: build-v<< matrix.os >>
           matrix:
             parameters:
               os: [linux, macos]
       - test:
-          name: test-v<< matrix.version >>
+          name: test-v<< matrix.os >>
           matrix:
             parameters:
               os: [linux, macos]
           requires:
-            - build-v<< matrix.version >>
+            - build-v<< matrix.os >>
