@@ -133,7 +133,7 @@ jobs:
       - persist_to_workspace:
           root: artifacts
           paths:
-            - ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-${OSD_ID}-${OSD_VERSION}.tar.gz
+            - ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz
   publish:
     docker:
       - image: cibuilds/github:0.10
