@@ -2,6 +2,9 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+orbs:
+  codecov: codecov/codecov@1.0.2
+
 rust_cache: &rust_cache
   paths:
     - ~/.cargo/bin/
@@ -86,12 +89,39 @@ jobs:
       - run:
           name: "test"
           command: "cargo test --lib --all-targets --all-features"
-      - run:
-          name: "doc test"
-          command: "cargo test --all-features --doc"
+#      - run:
+#          name: "doc test"
+#          command: "cargo test --all-features --doc"
       - save_cache:
           key: v1-ghjobs-test-{{ arch }}-{{ checksum "Cargo.lock" }}
           <<: *rust_cache
+  coverage:
+    parameters:
+      os:
+        type: executor
+    executor: << parameters.os >>
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-ghjobs-test-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-test-{{ arch }}-
+            - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-build-{{ arch }}-
+      - run:
+          <<: *rust_install_cmd
+      - run:
+          name: "install grcov"
+          command: "cargo install grcov --root target/"
+      - run:
+          name: "generate test coverage"
+          command: "RUSTFLAGS=\"-C instrument-coverage\" LLVM_PROFILE_FILE=\"coverage/lcov-%p-%m.profraw\" cargo test --lib --all-targets --all-features"
+      - run:
+          name: "generate coverage report"
+          command: "target/bin/grcov src --binary-path target/debug/ -s . --keep-only 'src/**' --prefix-dir $PWD -t lcov --branch --ignore-not-existing -o coverage/report.lcov"
+      - codecov/upload:
+          file: coverage/report.lcov
+
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -102,9 +132,7 @@ workflows:
           name: lint-v<< matrix.os >>
           matrix:
             parameters:
-              os: [linux, macos]
-            exclude:
-              - os: macos
+              os: [linux]
       - build:
           name: build-v<< matrix.os >>
           matrix:
@@ -117,3 +145,10 @@ workflows:
               os: [linux, macos]
           requires:
             - build-v<< matrix.os >>
+      - coverage:
+          name: coverage-v<< matrix.os >>
+          matrix:
+            parameters:
+              os: [linux]
+          requires:
+            - test-v<< matrix.os >>
