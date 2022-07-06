@@ -11,7 +11,8 @@ rust_cache: &rust_cache
     - target/
 
 rust_install_cmd: &rust_install_cmd
-  command: "curl https://sh.rustup.rs -sSf | sh -s -- --profile minimal --default-toolchain nightly -y && source $HOME/.cargo/env"
+  name: "install rust"
+  command: "curl https://sh.rustup.rs -sSf | sh -s -- --profile minimal --default-toolchain nightly -y -c rustfmt -c llvm-tools-preview -c clippy && source $HOME/.cargo/env"
 
 executors:
   linux:
@@ -36,7 +37,6 @@ jobs:
             - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
             - v1-ghjobs-build-{{ arch }}-
       - run:
-          name: "install rust"
           <<: *rust_install_cmd
       - run:
           name: "fmt"
@@ -61,7 +61,6 @@ jobs:
             - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
             - v1-ghjobs-build-{{ arch }}-
       - run:
-          name: "install rust"
           <<: *rust_install_cmd
       - run:
           name: "build"
@@ -83,11 +82,13 @@ jobs:
           - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
           - v1-ghjobs-build-{{ arch }}-
       - run:
-          name: "install rust"
           <<: *rust_install_cmd
       - run:
           name: "test"
           command: "cargo test --lib --all-targets --all-features"
+      - run:
+          name: "doc test"
+          command: "cargo test --all-features --doc"
       - save_cache:
           key: v1-ghjobs-test-{{ arch }}-{{ checksum "Cargo.lock" }}
           <<: *rust_cache
@@ -102,6 +103,8 @@ workflows:
           matrix:
             parameters:
               os: [linux, macos]
+            exclude:
+              - os: macos
       - build:
           name: build-v<< matrix.os >>
           matrix:
