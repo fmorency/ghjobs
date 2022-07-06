@@ -9,6 +9,12 @@ struct Foo {
     y: u32,
 }
 
+#[derive(Debug, Encode, Decode, PartialEq)]
+struct Bar {
+    #[n(0)]
+    z: u32,
+}
+
 fn main() {
     let a = minicbor::to_vec(Foo { x: 50, y: 100 }).unwrap();
     let b: Foo = minicbor::decode(&a).unwrap();
