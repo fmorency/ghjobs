@@ -126,11 +126,11 @@ jobs:
           with_cache: false
       - run:
           name: "creating release archive"
-          command: "find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-<< matrix.os >>.tar.gz --null -T -"
+          command: "find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-<< parameters.os >>.tar.gz --null -T -"
       - persist_to_workspace:
           root: /tmp/artifacts
           paths:
-            - target/release/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-<< matrix.os >>.tar.gz
+            - target/release/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}-<< parameters.os >>.tar.gz
   publish:
     docker:
       - image: cibuilds/github:0.10
@@ -177,6 +177,11 @@ workflows:
           matrix:
             parameters:
               os: [linux, macos]
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
       - publish:
           name: publish
           requires:
