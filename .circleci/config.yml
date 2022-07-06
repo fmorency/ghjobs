@@ -2,13 +2,16 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-cache_path: &cache_path
+rust_cache: &rust_cache
   paths:
     - ~/.cargo/bin/
     - ~/.cargo/registry/index/
     - ~/.cargo/registry/cache/
     - ~/.cargo/git/db/
     - target/
+
+rust_install_cmd: &rust_install_cmd
+  command: "curl https://sh.rustup.rs -sSf | sh -s -- --profile minimal --default-toolchain nightly -y && source $HOME/.cargo/env"
 
 executors:
   linux:
@@ -21,6 +24,27 @@ executors:
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
+  lint:
+    parameters:
+      os:
+        type: executor
+    executor: << parameters.os >>
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-build-{{ arch }}-
+      - run:
+          name: "install rust"
+          <<: *rust_install_cmd
+      - run:
+          name: "fmt"
+          command: "cargo fmt --all -- --check"
+      - run:
+          name: "clippy"
+          command: "cargo clippy --all-targets --all-features -- -D clippy::all"
+
   build:
     parameters:
       os:
@@ -38,13 +62,13 @@ jobs:
             - v1-ghjobs-build-{{ arch }}-
       - run:
           name: "install rust"
-          command: "curl https://sh.rustup.rs -sSf | sh -s -- --profile minimal --default-toolchain nightly -y && source $HOME/.cargo/env"
+          <<: *rust_install_cmd
       - run:
           name: "build"
-          command: "cargo build"
+          command: "cargo build --all-features"
       - save_cache:
           key: v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
-          <<: *cache_path
+          <<: *rust_cache
   test:
     parameters:
       os:
@@ -60,19 +84,24 @@ jobs:
           - v1-ghjobs-build-{{ arch }}-
       - run:
           name: "install rust"
-          command: "curl https://sh.rustup.rs -sSf | sh -s -- --profile minimal --default-toolchain nightly -y && source $HOME/.cargo/env"
+          <<: *rust_install_cmd
       - run:
           name: "test"
-          command: "cargo test"
+          command: "cargo test --lib --all-targets --all-features"
       - save_cache:
           key: v1-ghjobs-test-{{ arch }}-{{ checksum "Cargo.lock" }}
-          <<: *cache_path
+          <<: *rust_cache
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   ci:
     jobs:
+      - lint:
+          name: lint-v<< matrix.os >>
+          matrix:
+            parameters:
+              os: [linux, macos]
       - build:
           name: build-v<< matrix.os >>
           matrix:

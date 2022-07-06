@@ -19,7 +19,8 @@ fn main() {
 #[test]
 fn foo() {
     let a = minicbor::to_vec(Foo { x: 51, y: 101 }).unwrap();
-    let b: Foo = minicbor::decode(&a).unwrap();
+    let b: Foo = minicbor::decode(&a)
+        .unwrap();
 
     assert_eq!(b, Foo { x: 51, y: 101 });
 }
