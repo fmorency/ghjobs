@@ -3,7 +3,7 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@1.0.2
+  codecov: codecov/codecov@3.2.3
 
 rust_cache: &rust_cache
   paths:
@@ -12,6 +12,11 @@ rust_cache: &rust_cache
     - ~/.cargo/registry/cache/
     - ~/.cargo/git/db/
     - target/
+
+build_cache: &build_cache
+    - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
+    - v1-ghjobs-build-{{ arch }}-
+
 
 rust_install_cmd: &rust_install_cmd
   name: "install rust"
@@ -37,8 +42,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
-            - v1-ghjobs-build-{{ arch }}-
+            - <<: *build_cache
       - run:
           <<: *rust_install_cmd
       - run:
@@ -61,8 +65,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
-            - v1-ghjobs-build-{{ arch }}-
+            - <<: *build_cache
       - run:
           <<: *rust_install_cmd
       - run:
