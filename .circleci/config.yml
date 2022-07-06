@@ -42,7 +42,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - <<: *build_cache
+            <<: *build_cache
       - run:
           <<: *rust_install_cmd
       - run:
@@ -65,7 +65,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - <<: *build_cache
+            <<: *build_cache
       - run:
           <<: *rust_install_cmd
       - run:
