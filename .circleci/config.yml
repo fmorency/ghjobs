@@ -129,11 +129,11 @@ jobs:
       - run: mkdir -p artifacts
       - run:
           name: "creating release archive"
-          command: find target/release/ -maxdepth 1 -executable -type f -print0 | tar czvf ./artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz --null -T -
+          command: "file target/release/* | grep 'executable' | cut -d ':' -f 1 | tr '\n' '\0' | tar czvf ./artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz --null -T -"
       - persist_to_workspace:
           root: artifacts
           paths:
-            - ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz
+            - *
   publish:
     docker:
       - image: cibuilds/github:0.10
