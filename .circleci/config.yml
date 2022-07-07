@@ -144,7 +144,7 @@ jobs:
           name: "publish release"
           command: |
             VERSION=${CIRCLE_TAG}
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ${CIRCLE_TAG} artifacts
 
 workflows:
   ci:
@@ -179,7 +179,8 @@ workflows:
           name: create-v<< matrix.os >>
           matrix:
             parameters:
-              os: [linux, macos]
+#              os: [linux, macos]
+              os: [linux]
           filters:
             branches:
               ignore: /.*/
