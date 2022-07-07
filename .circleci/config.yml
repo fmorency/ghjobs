@@ -36,7 +36,7 @@ jobs:
           nightly-toolchain: true
           with_cache: false
       - rust/clippy:
-          flags: "--all-targets --all-features -- -D clippy::all"
+          flags: --all-targets --all-features -- -D clippy::all
           with_cache: false
 
   build:
@@ -53,7 +53,7 @@ jobs:
       - rust/install:
           version: nightly
       - rust/build:
-          crate: "--all-features"
+          crate: --all-features
           with_cache: false
       - save_cache:
           key: v1-ghjobs-build-{{ arch }}-{{ checksum "Cargo.lock" }}
@@ -74,7 +74,7 @@ jobs:
       - rust/install:
           version: nightly
       - rust/test:
-          package: "--lib --all-targets --all-features"
+          package: --lib --all-targets --all-features
           with_cache: false
 #      - run:
 #          name: "doc test"
@@ -100,14 +100,17 @@ jobs:
       - rust/install:
           version: nightly
       - run:
-          name: "install grcov"
-          command: "cargo install grcov --root target/"
+          name: install llvm-tools-preview
+          command: rustup component add llvm-tools-preview
       - run:
-          name: "generate test coverage"
-          command: "RUSTFLAGS=\"-C instrument-coverage\" LLVM_PROFILE_FILE=\"coverage/lcov-%p-%m.profraw\" cargo test --lib --all-targets --all-features"
+          name: install grcov
+          command: cargo install grcov --root target/
       - run:
-          name: "generate coverage report"
-          command: "target/bin/grcov coverage --binary-path target/debug/ -s . --keep-only 'src/**' --prefix-dir $PWD -t lcov --branch --ignore-not-existing -o coverage/report.lcov"
+          name: generate test coverage
+          command: RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="coverage/lcov-%p-%m.profraw" cargo test --lib --all-targets --all-features
+      - run:
+          name: generate coverage report
+          command: target/bin/grcov coverage --binary-path target/debug/ -s . --keep-only 'src/**' --prefix-dir $PWD -t lcov --branch --ignore-not-existing -o coverage/report.lcov
       - codecov/upload:
           file: coverage/report.lcov
       - save_cache:
@@ -128,11 +131,11 @@ jobs:
           with_cache: false
       - run: mkdir -p artifacts
       - run:
-          name: "creating release archive"
-          command: "file target/release/* | grep 'executable\\|shared object' | cut -d ':' -f 1 | xargs tar czvf artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz"
+          name: creating release archive
+          command: file target/release/* | grep 'executable\|shared object' | cut -d ':' -f 1 | xargs tar czvf artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz
       - run:
-          name: "creating release shasum"
-          command: "shasum artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz > artifacts/shasum_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.txt"
+          name: creating release shasum
+          command: shasum artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz > artifacts/shasum_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.txt
       - persist_to_workspace:
           root: artifacts
           paths:
@@ -145,7 +148,7 @@ jobs:
       - attach_workspace:
           at: ~/project/artifacts
       - run:
-          name: "publish release"
+          name: publish release
           command: ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
 
 workflows:

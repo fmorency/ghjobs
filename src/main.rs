@@ -37,3 +37,8 @@ fn unit() {
     // Foo
     let _ = Unit;
 }
+
+#[test]
+fn bar() {
+    let _ = Bar { z: 1 };
+}
