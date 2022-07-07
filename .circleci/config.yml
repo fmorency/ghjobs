@@ -142,9 +142,7 @@ jobs:
           at: ~/project/artifacts
       - run:
           name: "publish release"
-          command: |
-            VERSION=${CIRCLE_TAG}
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ${CIRCLE_TAG} artifacts
+          command: ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
 
 workflows:
   ci:
@@ -188,6 +186,8 @@ workflows:
               only: /^\d+\.\d+\.\d+$/
       - publish:
           name: publish
+          context:
+            - GITHUB_CREDS
           requires:
             - create
           filters:
