@@ -133,7 +133,7 @@ jobs:
       - persist_to_workspace:
           root: artifacts
           paths:
-            - *
+            - "*.tar.gz"
   publish:
     docker:
       - image: cibuilds/github:0.10
