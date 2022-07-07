@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@3.2.3
   rust: circleci/rust@1.6.0
+  detect: circleci/os-detect@0.3.0
 
 rust_cache_path: &rust_cache_path
   paths:
@@ -112,7 +113,40 @@ jobs:
       - save_cache:
           key: v1-ghjobs-coverage-{{ arch }}-{{ checksum "Cargo.lock" }}
           <<: *rust_cache_path
-
+  create:
+    parameters:
+      os:
+        type: executor
+    executor: << parameters.os >>
+    steps:
+      - checkout
+      - detect/init
+      - rust/install:
+          version: nightly
+      - rust/build:
+          release: true
+          with_cache: false
+      - run: mkdir -p artifacts
+      - run:
+          name: "creating release archive"
+          command: "file target/release/* | grep 'executable\\|shared object' | cut -d ':' -f 1 | xargs tar czvf artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz"
+      - run:
+          name: "creating release shasum"
+          command: "shasum artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz > artifacts/shasum_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.txt"
+      - persist_to_workspace:
+          root: artifacts
+          paths:
+            - "*.tar.gz"
+            - "*.txt"
+  publish:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: ~/project/artifacts
+      - run:
+          name: "publish release"
+          command: ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
 
 workflows:
   ci:
@@ -141,3 +175,26 @@ workflows:
               os: [linux]
           requires:
             - test-v<< matrix.os >>
+  release:
+    jobs:
+      - create:
+          name: create-v<< matrix.os >>
+          matrix:
+            parameters:
+              os: [linux, macos]
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - publish:
+          name: publish
+          context:
+            - GITHUB_CREDS
+          requires:
+            - create
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
