@@ -130,10 +130,14 @@ jobs:
       - run:
           name: "creating release archive"
           command: "file target/release/* | grep 'executable\\|shared object' | cut -d ':' -f 1 | xargs tar czvf artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz"
+      - run:
+          name: "creating release shasum"
+          command: "shasum artifacts/ghjobs_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.tar.gz > artifacts/shasum_${CIRCLE_TAG}_${CIRCLE_SHA1}_${OSD_ID}_${OSD_VERSION}.txt"
       - persist_to_workspace:
           root: artifacts
           paths:
             - "*.tar.gz"
+            - "*.txt"
   publish:
     docker:
       - image: cibuilds/github:0.10
@@ -177,8 +181,7 @@ workflows:
           name: create-v<< matrix.os >>
           matrix:
             parameters:
-#              os: [linux, macos]
-              os: [linux]
+              os: [linux, macos]
           filters:
             branches:
               ignore: /.*/
