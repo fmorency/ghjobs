@@ -4,6 +4,7 @@ orbs:
   codecov: codecov/codecov@3.2.3
   rust: circleci/rust@1.6.0
   detect: circleci/os-detect@0.3.0
+  bats: circleci/bats@1.0
 
 rust_cache_path: &rust_cache_path
   paths:
@@ -264,3 +265,10 @@ workflows:
         - equal: [ "Audit", << pipeline.schedule.name >> ]
     jobs:
       - audit
+  bats:
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - bats/run:
+          path: ./tests/bats
