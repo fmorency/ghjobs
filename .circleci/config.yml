@@ -164,6 +164,24 @@ jobs:
             - run:
                 name: publish pre-release
                 command: ghr -prerelease -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
+  audit:
+    docker:
+      - image: rust:latest
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-ghjobs-audit-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-audit-{{ arch }}-
+      - run:
+          name: install cargo-audit
+          run: cargo install cargo-audit
+      - run:
+          name: cargo audit
+          run: cargo audit
+      - save_cache:
+          key: v1-ghjobs-audit-{{ arch }}-{{ checksum "Cargo.lock" }}
+          <<: *rust_cache_path
 
 workflows:
   ci:
@@ -233,3 +251,13 @@ workflows:
               only:
                 - /^\d+\.\d+\.\d+-.*-rc.*$/
                 - /^\d+\.\d+\.\d+-pre.*$/
+  audit:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - audit
