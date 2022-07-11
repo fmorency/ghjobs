@@ -10,19 +10,6 @@ rust_cache_path: &rust_cache_path
     - ~/.cargo
     - target/
 
-publish: &publish
-    name: publish
-    context:
-      - GITHUB_CREDS
-    requires:
-      - create
-    filters:
-      branches:
-        ignore: /.*/
-      tags:
-        only: /^\d+\.\d+\.\d+$/
-
-
 executors:
   linux:
     machine:
@@ -170,13 +157,13 @@ jobs:
           steps:
             - run:
                 name: publish pre-release
-                command: &publish ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
+                command: ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
       - when:
           condition: << parameters.pre-release >>
           steps:
             - run:
                 name: publish pre-release
-                command: *publish -prerelease
+                command: ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts -prerelease
 
 workflows:
   ci:
