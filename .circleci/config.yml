@@ -10,6 +10,19 @@ rust_cache_path: &rust_cache_path
     - ~/.cargo
     - target/
 
+publish: &publish
+    name: publish
+    context:
+      - GITHUB_CREDS
+    requires:
+      - create
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^\d+\.\d+\.\d+$/
+
+
 executors:
   linux:
     machine:
@@ -142,14 +155,28 @@ jobs:
             - "*.tar.gz"
             - "*.txt"
   publish:
+    parameters:
+      pre-release:
+        type: boolean
+        default: false
     docker:
       - image: cibuilds/github:0.10
     steps:
       - attach_workspace:
           at: ~/project/artifacts
-      - run:
-          name: publish release
-          command: ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
+      - when:
+          condition:
+            not: << parameters.pre-release >>
+          steps:
+            - run:
+                name: publish pre-release
+                command: &publish ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
+      - when:
+          condition: << parameters.pre-release >>
+          steps:
+            - run:
+                name: publish pre-release
+                command: *publish -prerelease
 
 workflows:
   ci:
@@ -192,6 +219,7 @@ workflows:
               only: /^\d+\.\d+\.\d+$/
       - publish:
           name: publish
+          pre-release: false
           context:
             - GITHUB_CREDS
           requires:
@@ -201,3 +229,17 @@ workflows:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
+      - publish:
+          name: publish-pre-release
+          pre-release: true
+          context:
+            - GITHUB_CREDS
+          requires:
+            - create
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only:
+                - /^\d+\.\d+\.\d+-.*-rc.*$/
+                - /^\d+\.\d+\.\d+-pre.*$/
