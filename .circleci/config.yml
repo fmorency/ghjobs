@@ -142,14 +142,46 @@ jobs:
             - "*.tar.gz"
             - "*.txt"
   publish:
+    parameters:
+      pre-release:
+        type: boolean
+        default: false
     docker:
       - image: cibuilds/github:0.10
     steps:
       - attach_workspace:
           at: ~/project/artifacts
+      - when:
+          condition:
+            not: << parameters.pre-release >>
+          steps:
+            - run:
+                name: publish pre-release
+                command: ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
+      - when:
+          condition: << parameters.pre-release >>
+          steps:
+            - run:
+                name: publish pre-release
+                command: ghr -prerelease -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
+  audit:
+    docker:
+      - image: rust:latest
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-ghjobs-audit-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v1-ghjobs-audit-{{ arch }}-
       - run:
-          name: publish release
-          command: ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_TAG} ~/project/artifacts
+          name: install cargo-audit
+          command: cargo install cargo-audit
+      - run:
+          name: cargo audit
+          command: cargo audit
+      - save_cache:
+          key: v1-ghjobs-audit-{{ arch }}-{{ checksum "Cargo.lock" }}
+          <<: *rust_cache_path
 
 workflows:
   ci:
@@ -189,9 +221,13 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^\d+\.\d+\.\d+$/
+              only:
+                - /^\d+\.\d+\.\d+$/
+                - /^\d+\.\d+\.\d+-.*-rc.*$/
+                - /^\d+\.\d+\.\d+-pre.*$/
       - publish:
           name: publish
+          pre-release: false
           context:
             - GITHUB_CREDS
           requires:
@@ -201,3 +237,27 @@ workflows:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
+      - publish:
+          name: publish-pre-release
+          pre-release: true
+          context:
+            - GITHUB_CREDS
+          requires:
+            - create
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only:
+                - /^\d+\.\d+\.\d+-.*-rc.*$/
+                - /^\d+\.\d+\.\d+-pre.*$/
+  security:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - audit
