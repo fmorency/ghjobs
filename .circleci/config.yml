@@ -251,7 +251,7 @@ workflows:
               only:
                 - /^\d+\.\d+\.\d+-.*-rc.*$/
                 - /^\d+\.\d+\.\d+-pre.*$/
-  audit:
+  security:
     triggers:
       - schedule:
           cron: "0 0 * * *"
