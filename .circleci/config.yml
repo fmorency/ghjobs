@@ -203,7 +203,10 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^\d+\.\d+\.\d+$/
+              only:
+                - /^\d+\.\d+\.\d+$/
+                - /^\d+\.\d+\.\d+-.*-rc.*$/
+                - /^\d+\.\d+\.\d+-pre.*$/
       - publish:
           name: publish
           pre-release: false
