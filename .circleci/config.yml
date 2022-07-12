@@ -204,7 +204,7 @@ commands:
     steps:
       - when:
           condition:
-            equal: [linux, << os >>]
+            equal: [linux, << parameters.os >>]
           steps:
             - run:
                 name: installing linux dependencies
@@ -220,7 +220,7 @@ commands:
     steps:
       - when:
           condition:
-            equal: [macos, << os >>]
+            equal: [macos, << parameters.os >>]
           steps:
             - run:
                 name: installing macos dependencies
