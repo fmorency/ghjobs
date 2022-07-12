@@ -11,6 +11,17 @@ rust_cache_path: &rust_cache_path
     - ~/.cargo
     - target/
 
+linux_dependencies: &linux_dependencies
+  pre-steps:
+    - when:
+        equal: [linux, << matrix.os >>]
+    - steps:
+        - run:
+            name: installing dependencies
+            command: |
+              sudo apt -y update
+              sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
+
 executors:
   linux:
     machine:
@@ -193,18 +204,36 @@ workflows:
       - lint:
           pre-steps:
             - when:
-                equal: [linux, << matrix.os >>]
-            - steps:
-                - run:
-                    name: installing dependencies
-                    command: |
-                      sudo apt -y update
-                      sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
+                conditions:
+                  - equal: [linux, << matrix.os >>]
+                steps:
+                  - run:
+                      name: installing linux dependencies
+                      command: |
+                        sudo apt -y update
+                        sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
           name: lint-v<< matrix.os >>
           matrix:
             parameters:
               os: [linux]
       - build:
+          pre-steps:
+            - when:
+                conditions:
+                  - equal: [linux, << matrix.os >>]
+                steps:
+                  - run:
+                      name: installing linux dependencies
+                      command: |
+                        sudo apt -y update
+                        sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
+            - when:
+                conditions:
+                  - equal: [macos, << matrix.os >>]
+                steps:
+                  - run:
+                      name: installing macos dependencies
+                      command: brew install softhsm
           name: build-v<< matrix.os >>
           matrix:
             parameters:
