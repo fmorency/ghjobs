@@ -191,6 +191,13 @@ workflows:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - lint:
+          pre-steps:
+            - when:
+                equal: [linux, << matrix.os >>]
+            - steps:
+                - run: |
+                  sudo apt -y update
+                  sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
           name: lint-v<< matrix.os >>
           matrix:
             parameters:
