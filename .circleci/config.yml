@@ -195,6 +195,31 @@ jobs:
           key: v1-ghjobs-audit-{{ arch }}-{{ checksum "Cargo.lock" }}
           <<: *rust_cache_path
 
+commands:
+  linux-dep:
+    description: install linux dependencies
+    steps:
+      - when:
+          condition:
+            equal: [linux, << matrix.os >>]
+          steps:
+            - run:
+                name: installing linux dependencies
+                command: |
+                  sudo apt -y update
+                  sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
+
+  macos-dep:
+    description: install macos dependencies
+    steps:
+      - when:
+          condition:
+            equal: [macos, << matrix.os >>]
+          steps:
+            - run:
+                name: installing macos dependencies
+                command: brew install softhsm
+
 workflows:
   ci:
     when:
@@ -203,37 +228,15 @@ workflows:
     jobs:
       - lint:
           pre-steps:
-            - when:
-                conditions:
-                  - equal: [linux, << matrix.os >>]
-                steps:
-                  - run:
-                      name: installing linux dependencies
-                      command: |
-                        sudo apt -y update
-                        sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
+            - linux-dep
           name: lint-v<< matrix.os >>
           matrix:
             parameters:
               os: [linux]
       - build:
           pre-steps:
-            - when:
-                conditions:
-                  - equal: [linux, << matrix.os >>]
-                steps:
-                  - run:
-                      name: installing linux dependencies
-                      command: |
-                        sudo apt -y update
-                        sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
-            - when:
-                conditions:
-                  - equal: [macos, << matrix.os >>]
-                steps:
-                  - run:
-                      name: installing macos dependencies
-                      command: brew install softhsm
+            - linux-dep
+            - macos-dep
           name: build-v<< matrix.os >>
           matrix:
             parameters:
