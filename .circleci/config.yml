@@ -234,19 +234,18 @@ workflows:
     jobs:
       - lint:
           pre-steps:
-            - linux-dep
-            parameters:
-              os: << matrix.os >>
+            - linux-dep:
+                os: << matrix.os >>
           name: lint-v<< matrix.os >>
           matrix:
             parameters:
               os: [linux]
       - build:
           pre-steps:
-            - linux-dep
-            - macos-dep
-            parameters:
-              os: << matrix.os >>
+            - linux-dep:
+                os: << matrix.os >>
+            - macos-dep:
+                os: << matrix.os >>
           name: build-v<< matrix.os >>
           matrix:
             parameters:
