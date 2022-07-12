@@ -198,10 +198,13 @@ jobs:
 commands:
   linux-dep:
     description: install linux dependencies
+    parameters:
+      os:
+        type: string
     steps:
       - when:
           condition:
-            equal: [linux, << matrix.os >>]
+            equal: [linux, << os >>]
           steps:
             - run:
                 name: installing linux dependencies
@@ -211,10 +214,13 @@ commands:
 
   macos-dep:
     description: install macos dependencies
+    parameters:
+      os:
+        type: string
     steps:
       - when:
           condition:
-            equal: [macos, << matrix.os >>]
+            equal: [macos, << os >>]
           steps:
             - run:
                 name: installing macos dependencies
@@ -229,6 +235,8 @@ workflows:
       - lint:
           pre-steps:
             - linux-dep
+            parameters:
+              os: << matrix.os >>
           name: lint-v<< matrix.os >>
           matrix:
             parameters:
@@ -237,6 +245,8 @@ workflows:
           pre-steps:
             - linux-dep
             - macos-dep
+            parameters:
+              os: << matrix.os >>
           name: build-v<< matrix.os >>
           matrix:
             parameters:
