@@ -195,9 +195,11 @@ workflows:
             - when:
                 equal: [linux, << matrix.os >>]
             - steps:
-                - run: |
-                  sudo apt -y update
-                  sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
+                - run:
+                    name: installing dependencies
+                    command: |
+                      sudo apt -y update
+                      sudo apt -y install build-essential pkg-config clang libssl-dev libsofthsm2
           name: lint-v<< matrix.os >>
           matrix:
             parameters:
